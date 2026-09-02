@@ -42,10 +42,23 @@ run_menu() {
         
         echo -e "${YELLOW}Scanning storage, please wait...${RESET}"
         
-        # Disk Usage
-        local total_disk=$(df -k / | tail -1 | awk '{print $2 * 1024}')
-        local used_disk=$(df -k / | tail -1 | awk '{print $3 * 1024}')
-        local free_disk=$(df -k / | tail -1 | awk '{print $4 * 1024}')
+        # Disk Usage (using Swift to match macOS System Settings exactly)
+        local disk_info=$(swift -e 'import Foundation; let v = try! URL(fileURLWithPath: "/").resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey, .volumeTotalCapacityKey]); print("\(v.volumeTotalCapacity!) \(v.volumeAvailableCapacityForImportantUsage!)")' 2>/dev/null)
+        
+        local total_disk=0
+        local free_disk=0
+        local used_disk=0
+        
+        if [[ -n "$disk_info" ]]; then
+            total_disk=$(echo "$disk_info" | awk '{print $1}')
+            free_disk=$(echo "$disk_info" | awk '{print $2}')
+            used_disk=$((total_disk - free_disk))
+        else
+            # Fallback if swift fails
+            total_disk=$(df -k / | tail -1 | awk '{print $2 * 1024}')
+            used_disk=$(df -k / | tail -1 | awk '{print $3 * 1024}')
+            free_disk=$(df -k / | tail -1 | awk '{print $4 * 1024}')
+        fi
         
         local user_caches=$(scan_user_caches)
         local sys_caches=$(scan_system_caches)

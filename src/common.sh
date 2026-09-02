@@ -85,12 +85,13 @@ format_bytes() {
         echo "0 B"
         return
     fi
-    if [[ $bytes -ge 1073741824 ]]; then
-        echo "$(awk -v b="$bytes" 'BEGIN {printf "%.2f GB", b/1073741824}')"
-    elif [[ $bytes -ge 1048576 ]]; then
-        echo "$(awk -v b="$bytes" 'BEGIN {printf "%.2f MB", b/1048576}')"
-    elif [[ $bytes -ge 1024 ]]; then
-        echo "$(awk -v b="$bytes" 'BEGIN {printf "%.2f KB", b/1024}')"
+    # macOS uses Base-10 for storage sizes (1000 bytes = 1 KB)
+    if [[ $bytes -ge 1000000000 ]]; then
+        echo "$(awk -v b="$bytes" 'BEGIN {printf "%.2f GB", b/1000000000}')"
+    elif [[ $bytes -ge 1000000 ]]; then
+        echo "$(awk -v b="$bytes" 'BEGIN {printf "%.2f MB", b/1000000}')"
+    elif [[ $bytes -ge 1000 ]]; then
+        echo "$(awk -v b="$bytes" 'BEGIN {printf "%.2f KB", b/1000}')"
     else
         echo "${bytes} B"
     fi
