@@ -77,6 +77,28 @@ struct ResultsView: View {
                     Text(formatBytes(item.effectiveSize))
                         .font(.body)
                         .frame(width: 80, alignment: .trailing)
+                        
+                    Menu {
+                        Button("Reveal in Finder") {
+                            NSWorkspace.shared.activateFileViewerSelecting([item.path])
+                        }
+                        Button("Move to Trash", role: .destructive) {
+                            Task {
+                                do {
+                                    _ = try await TrashManager.moveToTrash(url: item.path)
+                                    await MainActor.run {
+                                        viewModel.removeItem(with: item.id)
+                                    }
+                                } catch {
+                                    print("Failed to delete: \(error)")
+                                }
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                    }
+                    .menuStyle(BorderlessButtonMenuStyle())
+                    .frame(width: 30)
                 }
                 .padding(.vertical, 4)
             }

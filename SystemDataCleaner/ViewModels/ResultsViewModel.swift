@@ -8,7 +8,7 @@ enum SortOption {
     case category
 }
 
-enum FilterOption: Equatable {
+enum FilterOption: Hashable {
     case all
     case safe
     case review
@@ -93,6 +93,31 @@ class ResultsViewModel: ObservableObject {
             selectedItemIDs.remove(item.id)
         } else {
             selectedItemIDs.insert(item.id)
+        }
+    }
+    
+    func removeItem(with id: UUID) {
+        allItems.removeItem(with: id)
+        selectedItemIDs.remove(id)
+    }
+}
+
+extension Array where Element == StorageItem {
+    mutating func removeItem(with id: UUID) {
+        if let index = self.firstIndex(where: { $0.id == id }) {
+            self.remove(at: index)
+            return
+        }
+        
+        for i in 0..<self.count {
+            if var children = self[i].children {
+                let initialCount = children.count
+                children.removeItem(with: id)
+                if children.count < initialCount {
+                    self[i].children = children.isEmpty ? nil : children
+                    return
+                }
+            }
         }
     }
 }

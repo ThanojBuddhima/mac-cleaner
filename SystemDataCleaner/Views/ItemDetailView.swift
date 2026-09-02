@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ItemDetailView: View {
     let item: StorageItem
+    var onDeleted: (() -> Void)? = nil
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -77,7 +78,14 @@ struct ItemDetailView: View {
                 
                 Button("Move to Trash") {
                     Task {
-                        _ = try? await TrashManager.moveToTrash(url: item.path)
+                        do {
+                            _ = try await TrashManager.moveToTrash(url: item.path)
+                            await MainActor.run {
+                                onDeleted?()
+                            }
+                        } catch {
+                            print("Failed to delete: \(error)")
+                        }
                     }
                 }
                 .buttonStyle(.bordered)

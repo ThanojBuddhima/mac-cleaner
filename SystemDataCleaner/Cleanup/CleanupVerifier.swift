@@ -10,7 +10,13 @@ class CleanupVerifier {
     static func getAvailableStorage(for volumeURL: URL = URL(fileURLWithPath: "/")) -> Int64? {
         do {
             let values = try volumeURL.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey, .volumeAvailableCapacityKey])
-            return Int64(values.volumeAvailableCapacityForImportantUsage ?? values.volumeAvailableCapacity ?? 0)
+            if let important = values.volumeAvailableCapacityForImportantUsage {
+                return important
+            } else if let regular = values.volumeAvailableCapacity {
+                return Int64(regular)
+            } else {
+                return 0
+            }
         } catch {
             return nil
         }

@@ -50,8 +50,14 @@ struct LargeFilesView: View {
                         }
                         Button("Move to Trash", role: .destructive) {
                             Task {
-                                _ = try? await TrashManager.moveToTrash(url: file.path)
-                                // In a real app we'd update the UI here
+                                do {
+                                    _ = try await TrashManager.moveToTrash(url: file.path)
+                                    await MainActor.run {
+                                        viewModel.removeItem(with: file.id)
+                                    }
+                                } catch {
+                                    print("Failed to delete: \(error)")
+                                }
                             }
                         }
                     } label: {
