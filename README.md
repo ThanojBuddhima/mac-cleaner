@@ -15,21 +15,26 @@ A safe, conservative macOS cleanup utility built entirely in Bash.
   - Old iOS Device Backups
   - Docker images/containers
 
+## Quick Install
+
+You can easily download and install the tool globally so that it can be run from anywhere in your terminal by running this single command:
+
+```bash
+curl -sL https://raw.githubusercontent.com/ThanojBuddhima/SystemDataCleaner/main/install.sh | bash
+```
+
+Once installed, simply type `mac-cleaner` in your terminal to start the app.
+
 ## Usage
 
 Start the interactive menu:
 ```bash
-./mac-cleaner
-```
-
-Run a quick storage scan:
-```bash
-./mac-cleaner scan
+mac-cleaner
 ```
 
 Run a module in dry-run mode:
 ```bash
-./mac-cleaner clean --dry-run
+mac-cleaner clean --dry-run
 ```
 
 ## Architecture
