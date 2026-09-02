@@ -26,16 +26,39 @@ delete_path() {
         return 0
     fi
     
-    # Move to trash if possible, otherwise rm
-    # Actually for CLI cleaner, rm is usually fine for caches, but let's just rm -rf
-    rm -rf "$target"
-    if [[ $? -eq 0 ]]; then
+    # Delete with a progress bar
+    local total_files=$(find "$target" 2>/dev/null | wc -l | awk '{print $1}')
+    
+    if [[ -z "$total_files" || "$total_files" -eq 0 ]]; then
+        # fallback to rm -rf if find fails for some reason
+        rm -rf "$target"
         log "Deleted: $target"
         return 0
-    else
-        log "Failed to delete: $target"
-        return 1
     fi
+
+    # Suppress cursor and show progress
+    tput civis
+    find "$target" -delete -print 2>/dev/null | awk -v total="$total_files" '
+    {
+        count++
+        if (count % 50 == 0 || count == total) {
+            percent = int((count / total) * 100)
+            printf "\r\033[0;36m[%-50s] %d%%\033[0m", substr("==================================================", 1, int(percent / 2)), percent > "/dev/stderr"
+        }
+    }
+    END {
+        printf "\n" > "/dev/stderr"
+    }
+    '
+    tput cnorm
+    
+    # Just in case the directory itself couldn't be deleted by find -delete due to permissions
+    if [[ -e "$target" ]]; then
+        rm -rf "$target" 2>/dev/null
+    fi
+    
+    log "Deleted: $target"
+    return 0
 }
 
 delete_contents() {
@@ -56,13 +79,30 @@ delete_contents() {
         return 0
     fi
     
-    # Delete contents but keep the directory
-    find "$target" -mindepth 1 -delete 2>/dev/null
-    if [[ $? -eq 0 ]]; then
-        log "Cleared contents of: $target"
+    # Delete contents but keep the directory, with a progress bar
+    local total_files=$(find "$target" -mindepth 1 2>/dev/null | wc -l | awk '{print $1}')
+    
+    if [[ -z "$total_files" || "$total_files" -eq 0 ]]; then
+        log "Cleared contents of: $target (already empty)"
         return 0
-    else
-        log "Errors while clearing contents of: $target (Some files might be in use)"
-        return 0 # We consider partial success OK for caches
     fi
+
+    # Suppress cursor and show progress
+    tput civis
+    find "$target" -mindepth 1 -delete -print 2>/dev/null | awk -v total="$total_files" '
+    {
+        count++
+        if (count % 50 == 0 || count == total) {
+            percent = int((count / total) * 100)
+            printf "\r\033[0;36m[%-50s] %d%%\033[0m", substr("==================================================", 1, int(percent / 2)), percent > "/dev/stderr"
+        }
+    }
+    END {
+        printf "\n" > "/dev/stderr"
+    }
+    '
+    tput cnorm
+    
+    log "Cleared contents of: $target"
+    return 0
 }
