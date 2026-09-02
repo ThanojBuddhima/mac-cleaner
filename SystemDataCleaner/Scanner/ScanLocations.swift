@@ -20,13 +20,17 @@ struct ScanLocations {
         urls.append(libraryURL.appendingPathComponent("Developer"))
         urls.append(libraryURL.appendingPathComponent("Application Support"))
         urls.append(libraryURL.appendingPathComponent("Containers"))
+        urls.append(libraryURL.appendingPathComponent("Group Containers"))
+        urls.append(URL(fileURLWithPath: "/Library/Caches"))
+        urls.append(URL(fileURLWithPath: "/Library/Logs"))
+        urls.append(URL(fileURLWithPath: "/Library/Application Support"))
         
         if mode == .deep {
             urls.append(homeURL.appendingPathComponent("Downloads"))
             urls.append(homeURL.appendingPathComponent("Documents"))
-            urls.append(URL(fileURLWithPath: "/Library/Caches"))
-            // We avoid entire /private/var/folders to prevent excessive scanning and permission issues without FDA,
-            // but can include safe subpaths if needed later.
+            urls.append(URL(fileURLWithPath: "/System/Library/Caches"))
+            urls.append(URL(fileURLWithPath: "/private/var/folders"))
+            urls.append(URL(fileURLWithPath: "/private/var/log"))
         }
         
         return urls
