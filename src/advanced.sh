@@ -5,7 +5,7 @@
 scan_trash() {
     local trash_size=0
     if [ -d "$HOME/.Trash" ]; then
-        trash_size=$(du -sk "$HOME/.Trash" 2>/dev/null | awk '{print $1 * 1024}')
+        trash_size=$(du -sk "$HOME/.Trash" 2>/dev/null | awk '{printf "%.0f\n", $1 * 1024}')
     fi
     echo "${trash_size:-0}"
 }
@@ -24,12 +24,12 @@ scan_logs() {
     local logs_size=0
     
     if [ -d "$HOME/Library/Logs" ]; then
-        local user_logs=$(du -sk "$HOME/Library/Logs" 2>/dev/null | awk '{print $1 * 1024}')
+        local user_logs=$(du -sk "$HOME/Library/Logs" 2>/dev/null | awk '{printf "%.0f\n", $1 * 1024}')
         logs_size=$((logs_size + user_logs))
     fi
     
     if [ -d "/Library/Logs" ]; then
-        local sys_logs=$(du -sk "/Library/Logs" 2>/dev/null | awk '{print $1 * 1024}')
+        local sys_logs=$(du -sk "/Library/Logs" 2>/dev/null | awk '{printf "%.0f\n", $1 * 1024}')
         logs_size=$((logs_size + sys_logs))
     fi
     
@@ -64,13 +64,13 @@ run_developer_wizard() {
         local device_support=0
         
         if [ -d "$HOME/Library/Developer/Xcode/DerivedData" ]; then
-            derived_data=$(du -sk "$HOME/Library/Developer/Xcode/DerivedData" 2>/dev/null | awk '{print $1 * 1024}')
+            derived_data=$(du -sk "$HOME/Library/Developer/Xcode/DerivedData" 2>/dev/null | awk '{printf "%.0f\n", $1 * 1024}')
         fi
         if [ -d "$HOME/Library/Developer/Xcode/Archives" ]; then
-            archives=$(du -sk "$HOME/Library/Developer/Xcode/Archives" 2>/dev/null | awk '{print $1 * 1024}')
+            archives=$(du -sk "$HOME/Library/Developer/Xcode/Archives" 2>/dev/null | awk '{printf "%.0f\n", $1 * 1024}')
         fi
         if [ -d "$HOME/Library/Developer/Xcode/iOS DeviceSupport" ]; then
-            device_support=$(du -sk "$HOME/Library/Developer/Xcode/iOS DeviceSupport" 2>/dev/null | awk '{print $1 * 1024}')
+            device_support=$(du -sk "$HOME/Library/Developer/Xcode/iOS DeviceSupport" 2>/dev/null | awk '{printf "%.0f\n", $1 * 1024}')
         fi
         
         echo -e "Xcode Data:"

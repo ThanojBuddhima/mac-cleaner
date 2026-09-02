@@ -11,7 +11,7 @@ get_directory_size() {
     
     # Use du to get size in bytes
     local size
-    size=$(du -s "$target" 2>/dev/null | awk '{print $1 * 512}')
+    size=$(du -s "$target" 2>/dev/null | awk '{printf "%.0f\n", $1 * 512}')
     if [[ -z "$size" ]]; then
         echo 0
     else
@@ -26,8 +26,8 @@ get_system_data_size() {
     local total_disk
     local used_disk
     
-    total_disk=$(df -k / | tail -1 | awk '{print $2 * 1024}')
-    used_disk=$(df -k / | tail -1 | awk '{print $3 * 1024}')
+    total_disk=$(df -k / | tail -1 | awk '{printf "%.0f\n", $2 * 1024}')
+    used_disk=$(df -k / | tail -1 | awk '{printf "%.0f\n", $3 * 1024}')
     
     echo "$used_disk"
 }

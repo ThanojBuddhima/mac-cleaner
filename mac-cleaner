@@ -51,14 +51,14 @@ run_menu() {
         local used_disk=0
         
         if [[ -n "$disk_info" ]]; then
-            total_disk=$(echo "$disk_info" | awk '{print $1}')
-            free_disk=$(echo "$disk_info" | awk '{print $2}')
+            total_disk=$(echo "$disk_info" | awk '{printf "%.0f\n", $1}')
+            free_disk=$(echo "$disk_info" | awk '{printf "%.0f\n", $2}')
             used_disk=$((total_disk - free_disk))
         else
             # Fallback if swift fails
-            total_disk=$(df -k / | tail -1 | awk '{print $2 * 1024}')
-            used_disk=$(df -k / | tail -1 | awk '{print $3 * 1024}')
-            free_disk=$(df -k / | tail -1 | awk '{print $4 * 1024}')
+            total_disk=$(df -k / | tail -1 | awk '{printf "%.0f\n", $2 * 1024}')
+            used_disk=$(df -k / | tail -1 | awk '{printf "%.0f\n", $3 * 1024}')
+            free_disk=$(df -k / | tail -1 | awk '{printf "%.0f\n", $4 * 1024}')
         fi
         
         local user_caches=$(scan_user_caches)
