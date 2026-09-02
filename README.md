@@ -1,6 +1,19 @@
 # Mac Cleaner
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
+
 A safe, conservative macOS cleanup utility built entirely in Bash.
+
+## Table of Contents
+- [Features](#features)
+- [Quick Install](#quick-install)
+- [Usage](#usage)
+- [Uninstall](#uninstall)
+- [Architecture](#architecture)
+- [Logging](#logging)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Features
 
@@ -57,3 +70,13 @@ This project is built using a modular structure in `src/`:
 ## Logging
 
 All deletions and actions are logged to `~/Library/Logs/mac-cleaner.log`.
+
+## Contributing
+
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
+
+## License
+
+Distributed under the MIT License. See `LICENSE` for more information.
