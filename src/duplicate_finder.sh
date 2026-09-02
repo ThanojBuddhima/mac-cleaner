@@ -187,10 +187,12 @@ run_duplicate_finder() {
                     done < "$tmp_groups"
                     
                     echo ""
-                    echo -e -n "${CYAN}Enter numbers to move to Trash (space separated) or press Enter to skip:${RESET} "
+                    echo -e -n "${CYAN}Enter numbers to Trash (e.g., '2 3' or '2,3') or press Enter to keep all:${RESET} "
                     read -r to_delete
                     
                     if [ -n "$to_delete" ]; then
+                        # Replace commas with spaces to allow both formats
+                        to_delete="${to_delete//,/ }"
                         for del_idx in $to_delete; do
                             local f_del="${files_in_group[$del_idx]}"
                             if [ -n "$f_del" ]; then
