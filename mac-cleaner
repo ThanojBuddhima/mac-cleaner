@@ -20,6 +20,7 @@ source "$SRC/developer.sh"
 source "$SRC/package_managers.sh"
 source "$SRC/docker.sh"
 source "$SRC/backups.sh"
+source "$SRC/advanced.sh"
 
 show_help() {
     echo "Usage: mac-cleaner [COMMAND] [OPTIONS]"
@@ -93,6 +94,7 @@ run_menu() {
         printf "  7. %-35s %s\n" "Remove old iPhone/iPad backups" "$(format_bytes $backups)"
         printf "  8. %-35s %s\n" "Clean Docker unused data" "$(format_bytes $docker)"
         printf "  9. %-35s %s\n" "Clean all caches (1, 2, 4, 5, 6)" "$(format_bytes $((user_caches + sys_caches + xcode + brew + npm)))"
+        printf " 10. %-35s\n" "More options..."
         echo ""
         printf "  0. %-35s\n" "Exit"
         echo ""
@@ -121,6 +123,7 @@ run_menu() {
                 clean_homebrew
                 clean_npm
                 ;;
+           10) run_more_menu ;;
             0) echo "Goodbye!"; exit 0 ;;
             *) echo "Invalid option." ;;
         esac
