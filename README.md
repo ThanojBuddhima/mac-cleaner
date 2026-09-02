@@ -1,0 +1,45 @@
+# Mac Cleaner
+
+A safe, conservative macOS cleanup utility built entirely in Bash.
+
+## Features
+
+- **Interactive CLI Menu**: Easily navigate and select what you want to clean.
+- **Dry-run Mode**: Run `mac-cleaner clean --dry-run` to see what will happen without actually deleting anything.
+- **Conservative Deletions**: We explicitly refuse to delete protected system paths. We scan and let you pick.
+- **Granular Control**: Clean specific segments of "System Data" safely:
+  - User and System Caches
+  - Xcode DerivedData and Archives
+  - Homebrew and npm caches
+  - Time Machine Snapshots
+  - Old iOS Device Backups
+  - Docker images/containers
+
+## Usage
+
+Start the interactive menu:
+```bash
+./mac-cleaner
+```
+
+Run a quick storage scan:
+```bash
+./mac-cleaner scan
+```
+
+Run a module in dry-run mode:
+```bash
+./mac-cleaner clean --dry-run
+```
+
+## Architecture
+
+This project is built using a modular structure in `src/`:
+- `scanner.sh`: Logic for estimating disk usage.
+- `common.sh`: Common text styling and UI functions.
+- `cleanup.sh`: Centralized logic for deleting files, ensuring dry-runs and system protections.
+- Separate modules (`caches.sh`, `developer.sh`, `snapshots.sh`, etc.) contain specific cleanup logic.
+
+## Logging
+
+All deletions and actions are logged to `~/Library/Logs/mac-cleaner.log`.
