@@ -37,6 +37,15 @@ Run a module in dry-run mode:
 mac-cleaner clean --dry-run
 ```
 
+## Uninstall
+
+If you wish to remove the tool from your system, run the following commands:
+
+```bash
+sudo rm /usr/local/bin/mac-cleaner
+rm -rf ~/.mac-cleaner
+```
+
 ## Architecture
 
 This project is built using a modular structure in `src/`:
