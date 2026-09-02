@@ -136,6 +136,7 @@ run_more_menu() {
         printf "  1. %-35s %s\n" "Clean Application & System Logs" "$(format_bytes $logs_size)"
         printf "  2. %-35s %s\n" "Empty Trash" "$(format_bytes $trash_size)"
         printf "  3. %-35s\n" "Developer Cleanup Wizard (Xcode)"
+        printf "  4. %-35s\n" "Find & Delete Duplicate Files"
         echo ""
         printf "  0. %-35s\n" "Back to Main Menu"
         echo ""
@@ -149,6 +150,7 @@ run_more_menu() {
             1) clean_logs ;;
             2) clean_trash ;;
             3) run_developer_wizard ;;
+            4) run_duplicate_finder ;;
             0) return ;;
             *) echo "Invalid option." ;;
         esac

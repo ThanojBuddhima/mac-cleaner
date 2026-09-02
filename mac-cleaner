@@ -21,6 +21,7 @@ source "$SRC/package_managers.sh"
 source "$SRC/docker.sh"
 source "$SRC/backups.sh"
 source "$SRC/advanced.sh"
+source "$SRC/duplicate_finder.sh"
 
 show_help() {
     echo "Usage: mac-cleaner [COMMAND] [OPTIONS]"
