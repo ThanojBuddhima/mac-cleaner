@@ -70,7 +70,19 @@ class ResultsViewModel: ObservableObject {
     }
     
     var selectedItems: [StorageItem] {
-        return allItems.filter { selectedItemIDs.contains($0.id) }
+        var foundItems: [StorageItem] = []
+        func search(_ items: [StorageItem]) {
+            for item in items {
+                if selectedItemIDs.contains(item.id) {
+                    foundItems.append(item)
+                }
+                if let children = item.children {
+                    search(children)
+                }
+            }
+        }
+        search(allItems)
+        return foundItems
     }
     
     var selectedTotalSize: Int64 {
@@ -78,10 +90,17 @@ class ResultsViewModel: ObservableObject {
     }
     
     func selectAllSafe() {
-        let safeItems = filteredItems.filter { $0.safetyLevel == .safe }
-        for item in safeItems {
-            selectedItemIDs.insert(item.id)
+        func selectSafe(in items: [StorageItem]) {
+            for item in items {
+                if item.safetyLevel == .safe {
+                    selectedItemIDs.insert(item.id)
+                }
+                if let children = item.children {
+                    selectSafe(in: children)
+                }
+            }
         }
+        selectSafe(in: filteredItems)
     }
     
     func deselectAll() {

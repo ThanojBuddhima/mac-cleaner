@@ -46,7 +46,7 @@ struct ResultsView: View {
             .padding()
             
             // List
-            List(viewModel.filteredItems) { item in
+            List(viewModel.filteredItems, children: \.children) { item in
                 HStack {
                     Toggle("", isOn: Binding(
                         get: { viewModel.selectedItemIDs.contains(item.id) },
