@@ -18,6 +18,11 @@ if [ -d "$INSTALL_DIR" ]; then
 else
     echo "Cloning repository to $INSTALL_DIR..."
     git clone https://github.com/ThanojBuddhima/SystemDataCleaner.git "$INSTALL_DIR"
+    if [ $? -ne 0 ]; then
+        echo -e "\n\033[0;31mError: Failed to clone repository.\033[0m"
+        echo "Please check your internet connection or git configuration and try again."
+        exit 1
+    fi
 fi
 
 echo "Setting execute permissions..."
