@@ -79,4 +79,4 @@ Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
 
 ## License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
