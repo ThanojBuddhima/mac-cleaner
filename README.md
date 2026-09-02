@@ -33,7 +33,7 @@ A safe, conservative macOS cleanup utility built entirely in Bash.
 You can easily download and install the tool globally so that it can be run from anywhere in your terminal by running this single command:
 
 ```bash
-curl -sL https://raw.githubusercontent.com/ThanojBuddhima/SystemDataCleaner/main/install.sh | bash
+curl -sL https://raw.githubusercontent.com/ThanojBuddhima/mac-cleaner/main/install.sh | bash
 ```
 
 Once installed, simply type `mac-cleaner` in your terminal to start the app.

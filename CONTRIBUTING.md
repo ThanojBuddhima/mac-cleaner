@@ -30,8 +30,8 @@ Please follow these steps to have your contribution considered by the maintainer
 ## Local Development
 
 To set up the project locally:
-1. Clone your fork: `git clone https://github.com/YOUR_USERNAME/SystemDataCleaner.git`
-2. Navigate to the project directory: `cd SystemDataCleaner`
+1. Clone your fork: `git clone https://github.com/YOUR_USERNAME/mac-cleaner.git`
+2. Navigate to the project directory: `cd mac-cleaner`
 3. You can run the script directly: `./mac-cleaner`
 4. Make your changes in the `src/` directory.
 
