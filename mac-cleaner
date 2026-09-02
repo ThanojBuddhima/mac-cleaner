@@ -92,6 +92,7 @@ run_menu() {
         printf "  6. %-35s %s\n" "Clean npm cache" "$(format_bytes $npm)"
         printf "  7. %-35s %s\n" "Remove old iPhone/iPad backups" "$(format_bytes $backups)"
         printf "  8. %-35s %s\n" "Clean Docker unused data" "$(format_bytes $docker)"
+        printf "  9. %-35s %s\n" "Clean all caches (1, 2, 4, 5, 6)" "$(format_bytes $((user_caches + sys_caches + xcode + brew + npm)))"
         echo ""
         printf "  0. %-35s\n" "Exit"
         echo ""
@@ -113,6 +114,13 @@ run_menu() {
             6) clean_npm ;;
             7) clean_backups ;;
             8) clean_docker ;;
+            9) 
+                clean_user_caches
+                clean_system_caches
+                clean_xcode
+                clean_homebrew
+                clean_npm
+                ;;
             0) echo "Goodbye!"; exit 0 ;;
             *) echo "Invalid option." ;;
         esac
