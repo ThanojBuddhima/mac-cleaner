@@ -6,7 +6,7 @@ run_duplicate_finder() {
     clear
     print_header "DUPLICATE FINDER"
     
-    echo -e "Where should we search for duplicates (>1MB)?\n"
+    echo -e "Where should we search for duplicates?\n"
     echo "  1. Entire Home Folder (Skips Library and hidden files)"
     echo "  2. Downloads"
     echo "  3. Documents"
@@ -48,12 +48,12 @@ run_duplicate_finder() {
     local tmp_hashes=$(mktemp)
     local tmp_groups=$(mktemp)
     
-    # 1. Find files > 1MB, get size|filepath
+    # 1. Find non-empty files, get size|filepath
     if [ "$skip_sys" -eq 1 ]; then
-        find "$target_dir" -type f -not -path '*/\.*' -not -path "$HOME/Library/*" -size +1M -print0 2>/dev/null | \
+        find "$target_dir" -type f -not -path '*/\.*' -not -path "$HOME/Library/*" -size +0 -print0 2>/dev/null | \
             xargs -0 stat -f "%z|%N" 2>/dev/null > "$tmp_sizes"
     else
-        find "$target_dir" -type f -size +1M -print0 2>/dev/null | \
+        find "$target_dir" -type f -size +0 -print0 2>/dev/null | \
             xargs -0 stat -f "%z|%N" 2>/dev/null > "$tmp_sizes"
     fi
 
