@@ -6,18 +6,63 @@ run_duplicate_finder() {
     clear
     print_header "DUPLICATE FINDER"
     
-    echo -e "${YELLOW}Scanning your Home folder for duplicate files...${RESET}"
-    echo "This may take a minute. Skipping system files and hidden folders."
+    echo -e "Where should we search for duplicates (>1MB)?\n"
+    echo "  1. Entire Home Folder (Skips Library and hidden files)"
+    echo "  2. Downloads"
+    echo "  3. Documents"
+    echo "  4. Desktop"
+    echo "  5. Pictures"
+    echo "  6. Movies"
+    echo "  7. Custom location"
+    echo ""
+    echo "  0. Back"
+    echo ""
+    
+    echo -e -n "${CYAN}Select a location:${RESET} "
+    read -r loc_opt
+    
+    local target_dir=""
+    local skip_sys=0
+    
+    case "$loc_opt" in
+        1) target_dir="$HOME"; skip_sys=1 ;;
+        2) target_dir="$HOME/Downloads" ;;
+        3) target_dir="$HOME/Documents" ;;
+        4) target_dir="$HOME/Desktop" ;;
+        5) target_dir="$HOME/Pictures" ;;
+        6) target_dir="$HOME/Movies" ;;
+        7)
+            echo -e -n "\nEnter full path (e.g., /Users/name/Projects): "
+            read -r custom_dir
+            target_dir=$(eval echo "$custom_dir") # expand ~ if provided
+            ;;
+        0) return ;;
+        *) echo "Invalid option."; sleep 1; return ;;
+    esac
+    
+    if [ ! -d "$target_dir" ]; then
+        echo -e "\n${RED}Directory not found: $target_dir${RESET}"
+        sleep 2
+        return
+    fi
+    
+    echo -e "\n${YELLOW}Scanning $target_dir for duplicate files...${RESET}"
+    echo "This may take a minute."
     
     local tmp_sizes=$(mktemp)
     local tmp_files_to_hash=$(mktemp)
     local tmp_hashes=$(mktemp)
     local tmp_groups=$(mktemp)
     
-    # 1. Find files > 1MB, ignore Library and hidden, get size|filepath
-    find "$HOME" -type f -not -path '*/\.*' -not -path "$HOME/Library/*" -size +1M -print0 2>/dev/null | \
-        xargs -0 stat -f "%z|%N" 2>/dev/null > "$tmp_sizes"
-        
+    # 1. Find files > 1MB, get size|filepath
+    if [ "$skip_sys" -eq 1 ]; then
+        find "$target_dir" -type f -not -path '*/\.*' -not -path "$HOME/Library/*" -size +1M -print0 2>/dev/null | \
+            xargs -0 stat -f "%z|%N" 2>/dev/null > "$tmp_sizes"
+    else
+        find "$target_dir" -type f -size +1M -print0 2>/dev/null | \
+            xargs -0 stat -f "%z|%N" 2>/dev/null > "$tmp_sizes"
+    fi
+
     if [ ! -s "$tmp_sizes" ]; then
         echo -e "\nNo large files found to compare."
         rm -f "$tmp_sizes" "$tmp_files_to_hash" "$tmp_hashes" "$tmp_groups"
