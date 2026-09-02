@@ -16,7 +16,7 @@ scan_docker() {
         else if ($0 ~ /MB/) { sum += $1 * 1048576 }
         else if ($0 ~ /KB/) { sum += $1 * 1024 }
         else if ($0 ~ /B/) { sum += $1 }
-    } END { print sum }')
+    } END { printf "%.0f\n", sum }')
     
     if [[ -z "$size_str" ]]; then
         echo 0
