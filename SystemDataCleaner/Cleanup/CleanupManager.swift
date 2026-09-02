@@ -7,6 +7,7 @@ class CleanupManager {
         var processedSize: Int64 = 0
         var successfullyRemovedSize: Int64 = 0
         var skippedItems: [CleanupSkippedItem] = []
+        var successfulItems: [StorageItem] = []
         
         let initialStorage = CleanupVerifier.getAvailableStorage() ?? 0
         
@@ -27,6 +28,7 @@ class CleanupManager {
                     
                     if CleanupVerifier.verifyRemoval(of: item) {
                         successfullyRemovedSize += item.effectiveSize
+                        successfulItems.append(item)
                     } else {
                         skippedItems.append(CleanupSkippedItem(item: item, reason: "Item still exists after removal attempt"))
                     }
@@ -56,7 +58,8 @@ class CleanupManager {
         let cResult = CleanupResult(
             processedSize: processedSize,
             successfullyRemovedSize: successfullyRemovedSize,
-            skippedItems: skippedItems
+            skippedItems: skippedItems,
+            successfulItems: successfulItems
         )
         let vResult = VerificationResult(
             beforeAvailableStorage: initialStorage,

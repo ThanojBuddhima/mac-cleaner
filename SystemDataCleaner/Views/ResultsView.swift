@@ -134,7 +134,11 @@ struct ResultsView: View {
             .padding()
         }
         .sheet(isPresented: $showCleanupConfirmation) {
-            CleanupConfirmationView(cleanupViewModel: cleanupViewModel, isPresented: $showCleanupConfirmation)
+            CleanupConfirmationView(cleanupViewModel: cleanupViewModel, isPresented: $showCleanupConfirmation) { successfulItems in
+                for item in successfulItems {
+                    viewModel.removeItem(with: item.id)
+                }
+            }
         }
     }
 }

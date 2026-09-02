@@ -3,6 +3,7 @@ import SwiftUI
 struct CleanupConfirmationView: View {
     @ObservedObject var cleanupViewModel: CleanupViewModel
     @Binding var isPresented: Bool
+    var onComplete: (([StorageItem]) -> Void)? = nil
     
     var body: some View {
         VStack(spacing: 0) {
@@ -82,6 +83,7 @@ struct CleanupConfirmationView: View {
                     CleanupProgressView(progress: progress)
                 case .complete(let cResult, let vResult):
                     CleanupResultView(cleanupResult: cResult, verificationResult: vResult) {
+                        onComplete?(cResult.successfulItems)
                         isPresented = false
                     }
                 default:

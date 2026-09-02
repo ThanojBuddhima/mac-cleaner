@@ -21,6 +21,7 @@ struct CleanupResult {
     let processedSize: Int64
     let successfullyRemovedSize: Int64
     let skippedItems: [CleanupSkippedItem]
+    let successfulItems: [StorageItem]
 }
 
 struct VerificationResult {
