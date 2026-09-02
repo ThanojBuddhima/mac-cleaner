@@ -13,7 +13,6 @@ run_duplicate_finder() {
     echo "  4. Desktop"
     echo "  5. Pictures"
     echo "  6. Movies"
-    echo "  7. Custom location"
     echo ""
     echo "  0. Back"
     echo ""
@@ -31,11 +30,6 @@ run_duplicate_finder() {
         4) target_dir="$HOME/Desktop" ;;
         5) target_dir="$HOME/Pictures" ;;
         6) target_dir="$HOME/Movies" ;;
-        7)
-            echo -e -n "\nEnter full path (e.g., /Users/name/Projects): "
-            read -r custom_dir
-            target_dir=$(eval echo "$custom_dir") # expand ~ if provided
-            ;;
         0) return ;;
         *) echo "Invalid option."; sleep 1; return ;;
     esac
