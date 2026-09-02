@@ -9,83 +9,106 @@ run_duplicate_finder() {
     echo -e "${YELLOW}Scanning your Home folder for duplicate files...${RESET}"
     echo "This may take a minute. Skipping system files and hidden folders."
     
-    # We scan $HOME, exclude hidden directories and Library to protect system/app data
-    # We also filter size > 1MB by default so the script doesn't take hours finding identical 2KB text files.
-    declare -A size_groups
-    local count_scanned=0
+    local tmp_sizes=$(mktemp)
+    local tmp_files_to_hash=$(mktemp)
+    local tmp_hashes=$(mktemp)
+    local tmp_groups=$(mktemp)
     
-    while IFS= read -r -d '' file; do
-        if [ -f "$file" ]; then
+    # 1. Find files > 1MB, ignore Library and hidden, get size|filepath
+    find "$HOME" -type f -not -path '*/\.*' -not -path "$HOME/Library/*" -size +1M -print0 2>/dev/null | \
+        xargs -0 stat -f "%z|%N" 2>/dev/null > "$tmp_sizes"
+        
+    if [ ! -s "$tmp_sizes" ]; then
+        echo -e "\nNo large files found to compare."
+        rm -f "$tmp_sizes" "$tmp_files_to_hash" "$tmp_hashes" "$tmp_groups"
+        echo -e -n "Press Enter to continue..."
+        read -r
+        return
+    fi
+    
+    echo "Filtering files by size..."
+    
+    # 2. Extract files that share the same size
+    awk -F'|' '
+    {
+        size = $1
+        file = substr($0, length(size) + 2)
+        count[size]++
+        files[size] = (size in files) ? files[size] "|" file : file
+    }
+    END {
+        for (s in count) {
+            if (count[s] > 1) {
+                # split and print each file
+                split(files[s], arr, "|")
+                for (i in arr) {
+                    print arr[i]
+                }
+            }
+        }
+    }' "$tmp_sizes" > "$tmp_files_to_hash"
+    
+    if [ ! -s "$tmp_files_to_hash" ]; then
+        echo -e "\nNo duplicate sizes found."
+        rm -f "$tmp_sizes" "$tmp_files_to_hash" "$tmp_hashes" "$tmp_groups"
+        echo -e -n "Press Enter to continue..."
+        read -r
+        return
+    fi
+    
+    echo "Hashing potential duplicates (this may take a bit)..."
+    
+    # 3. Hash files that share sizes
+    while IFS= read -r file; do
+        [ -z "$file" ] && continue
+        # Hash and output hash|size|filepath
+        # (We need size to calculate recoverable space later)
+        local hash
+        hash=$(shasum -a 256 "$file" 2>/dev/null | awk '{print $1}')
+        if [ -n "$hash" ]; then
             local size
             size=$(stat -f%z "$file" 2>/dev/null)
-            if [ -n "$size" ]; then
-                size_groups["$size"]+="$file"$'\n'
-                count_scanned=$((count_scanned + 1))
-            fi
+            echo "${hash}|${size}|${file}" >> "$tmp_hashes"
         fi
-    done < <(find "$HOME" -type f -not -path '*/\.*' -not -path "$HOME/Library/*" -size +1M -print0 2>/dev/null)
+    done < "$tmp_files_to_hash"
     
-    if [ "$count_scanned" -eq 0 ]; then
-        echo -e "\nNo large files found to compare."
-        echo -e -n "Press Enter to continue..."
-        read -r
-        return
-    fi
-    
-    echo "Hashing potential duplicates..."
-    
-    local tmp_file=$(mktemp)
-    local group_id=1
-    local total_recoverable=0
-    
-    for size in "${!size_groups[@]}"; do
-        local files="${size_groups[$size]}"
-        local num_files=$(printf "%s" "$files" | grep -c .)
+    # 4. Group by hash and calculate recovery space
+    # Output format: GroupID|FileIdx|FilePath|RecoverableSize
+    awk -F'|' '
+    {
+        hash = $1
+        size = $2
+        file = substr($0, length(hash) + length(size) + 3)
         
-        if [ "$num_files" -lt 2 ]; then
-            continue
-        fi
-        
-        declare -A hash_groups
-        
-        while IFS= read -r file; do
-            [ -z "$file" ] && continue
-            local file_hash=$(shasum -a 256 "$file" 2>/dev/null | awk '{print $1}')
-            if [ -n "$file_hash" ]; then
-                hash_groups["$file_hash"]+="$file"$'\n'
-            fi
-        done <<< "$files"
-        
-        for h in "${!hash_groups[@]}"; do
-            local h_files="${hash_groups[$h]}"
-            local h_count=$(printf "%s" "$h_files" | grep -c .)
-            
-            if [ "$h_count" -ge 2 ]; then
-                local recoverable_size=$((size * (h_count - 1)))
-                total_recoverable=$((total_recoverable + recoverable_size))
+        count[hash]++
+        files[hash] = (hash in files) ? files[hash] "|" file : file
+        sizes[hash] = size
+    }
+    END {
+        group_id = 1
+        for (h in count) {
+            if (count[h] > 1) {
+                n = split(files[h], arr, "|")
+                recoverable = sizes[h] * (n - 1)
                 
-                local file_idx=1
-                while IFS= read -r f; do
-                    [ -z "$f" ] && continue
-                    # Save mapping to temp file: GroupID|FileIdx|FilePath|RecoverableSize
-                    echo "$group_id|$file_idx|$f|$recoverable_size" >> "$tmp_file"
-                    file_idx=$((file_idx + 1))
-                done <<< "$h_files"
-                
-                group_id=$((group_id + 1))
-            fi
-        done
-    done
+                for (i=1; i<=n; i++) {
+                    print group_id "|" i "|" arr[i] "|" recoverable
+                }
+                group_id++
+            }
+        }
+    }' "$tmp_hashes" > "$tmp_groups"
     
-    if [ ! -s "$tmp_file" ]; then
+    if [ ! -s "$tmp_groups" ]; then
         echo -e "\nNo actual duplicates found!"
-        rm -f "$tmp_file"
+        rm -f "$tmp_sizes" "$tmp_files_to_hash" "$tmp_hashes" "$tmp_groups"
         echo -e -n "Press Enter to continue..."
         read -r
         return
     fi
     
-    local num_groups=$((group_id - 1))
+    local num_groups=$(tail -1 "$tmp_groups" | awk -F'|' '{print $1}')
+    local total_recoverable=$(awk -F'|' '$2 == 1 {sum += $4} END {print sum}' "$tmp_groups")
     
     while true; do
         clear
@@ -122,7 +145,7 @@ run_duplicate_finder() {
                             files_in_group[$idx]="$filepath"
                             idx=$((idx + 1))
                         fi
-                    done < "$tmp_file"
+                    done < "$tmp_groups"
                     
                     echo ""
                     echo -e -n "${CYAN}Enter numbers to move to Trash (space separated) or press Enter to skip:${RESET} "
@@ -148,7 +171,7 @@ run_duplicate_finder() {
                 done
                 
                 echo -e "\n${GREEN}Cleanup complete! Moved $deleted_count files to Trash.${RESET}"
-                rm -f "$tmp_file"
+                rm -f "$tmp_sizes" "$tmp_files_to_hash" "$tmp_hashes" "$tmp_groups"
                 echo -e -n "Press Enter to return..."
                 read -r
                 return
@@ -170,18 +193,18 @@ run_duplicate_finder() {
                                 deleted_count=$((deleted_count + 1))
                             fi
                         fi
-                    done < "$tmp_file"
+                    done < "$tmp_groups"
                     echo -e "\n${GREEN}Cleanup complete! Moved $deleted_count files to Trash.${RESET}"
                 else
                     echo "Cancelled."
                 fi
-                rm -f "$tmp_file"
+                rm -f "$tmp_sizes" "$tmp_files_to_hash" "$tmp_hashes" "$tmp_groups"
                 echo -e -n "Press Enter to return..."
                 read -r
                 return
                 ;;
             0)
-                rm -f "$tmp_file"
+                rm -f "$tmp_sizes" "$tmp_files_to_hash" "$tmp_hashes" "$tmp_groups"
                 return
                 ;;
             *)
