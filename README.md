@@ -32,7 +32,7 @@ A safe, conservative macOS cleanup utility built entirely in Bash.
 
 ## Quick Install
 
-You can easily download and install the tool globally so that it can be run from anywhere in your terminal by running this single command:
+You can easily download and install (Or Update) the tool globally so that it can be run from anywhere in your terminal by running this single command:
 
 ```bash
 curl -sL https://raw.githubusercontent.com/ThanojBuddhima/mac-cleaner/main/install.sh | bash
