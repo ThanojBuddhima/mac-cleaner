@@ -3,6 +3,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 
+*Last updated: 2026-09-03 10:26:16 +05:30*
+
 A safe, conservative macOS cleanup utility built entirely in Bash.
 
 ## Table of Contents
