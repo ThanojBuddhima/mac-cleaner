@@ -6,7 +6,9 @@ scan_snapshots() {
     # tmutil listlocalsnapshots / gives something like:
     # Snapshots for volume group containing disk /:
     # com.apple.TimeMachine.2023-10-24-123456.local
-    local count=$(tmutil listlocalsnapshots / | grep "com.apple.TimeMachine" | wc -l | tr -d ' ')
+    local count
+    count=$(tmutil listlocalsnapshots / 2>/dev/null | grep "com.apple.TimeMachine" | wc -l | tr -d ' ')
+    count="${count:-0}"
     
     # We can't easily get the size of snapshots without root, 
     # and even then it's complex because APFS shares space.
@@ -34,7 +36,7 @@ manage_snapshots() {
     echo "  0. Back"
     echo ""
     echo -e -n "${CYAN}Select an option:${RESET} "
-    read -r opt
+    read -r opt || return
     
     local target_bytes=0
     case "$opt" in
@@ -51,7 +53,10 @@ manage_snapshots() {
         echo -e "${MAGENTA}DRY RUN: Would run 'tmutil thinlocalsnapshots / $target_bytes 4'${RESET}"
     else
         echo "Thinning snapshots (this may take a while)..."
-        sudo tmutil thinlocalsnapshots / "$target_bytes" 4
-        print_success "Snapshot thinning complete."
+        if sudo tmutil thinlocalsnapshots / "$target_bytes" 4; then
+            print_success "Snapshot thinning complete."
+        else
+            print_error "Snapshot thinning failed."
+        fi
     fi
 }

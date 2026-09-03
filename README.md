@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 
-*Last updated: 2026-09-03 10:26:16 +05:30*
+*Last updated: 2026-09-04*
 
 A safe, conservative macOS cleanup utility built entirely in Bash.
 
@@ -20,14 +20,14 @@ A safe, conservative macOS cleanup utility built entirely in Bash.
 ## Features
 
 - **Interactive CLI Menu**: Easily navigate and select what you want to clean.
-- **Dry-run Mode**: Run `mac-cleaner clean --dry-run` to see what will happen without actually deleting anything.
+- **Dry-run Mode**: Run `mac-cleaner --dry-run` to preview deletions without removing anything.
 - **Conservative Deletions**: We explicitly refuse to delete protected system paths. We scan and let you pick.
 - **Granular Control**: Clean specific segments of "System Data" safely:
   - User and System Caches
   - Xcode DerivedData and Archives
   - Homebrew and npm caches
   - Time Machine Snapshots
-  - Old iOS Device Backups
+  - iPhone/iPad backups
   - Docker images/containers
 
 ## Installation
@@ -55,7 +55,7 @@ cd mac-cleaner
 
 # Or symlink manually to avoid sudo (assuming ~/.local/bin is in your PATH):
 mkdir -p ~/.local/bin
-ln -s $(pwd)/mac-cleaner ~/.local/bin/mac-cleaner
+ln -s "$(pwd)/mac-cleaner" ~/.local/bin/mac-cleaner
 ```
 
 ## Usage
@@ -65,8 +65,15 @@ Start the interactive menu:
 mac-cleaner
 ```
 
-Run a module in dry-run mode:
+Preview reclaimable space:
 ```bash
+mac-cleaner scan
+```
+
+Open the menu in dry-run mode (nothing is deleted):
+```bash
+mac-cleaner --dry-run
+# or
 mac-cleaner clean --dry-run
 ```
 
@@ -75,7 +82,7 @@ mac-cleaner clean --dry-run
 If you wish to remove the tool from your system, run the following commands:
 
 ```bash
-sudo rm /usr/local/bin/mac-cleaner
+rm -f ~/.local/bin/mac-cleaner /opt/homebrew/bin/mac-cleaner /usr/local/bin/mac-cleaner
 rm -rf ~/.mac-cleaner
 ```
 

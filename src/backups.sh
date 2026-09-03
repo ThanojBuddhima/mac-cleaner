@@ -5,7 +5,6 @@ source "$(dirname "${BASH_SOURCE[0]}")/scanner.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/cleanup.sh"
 
 scan_backups() {
-    # On newer macOS, backups are in ~/Library/Application Support/MobileSync/Backup
     local backup_dir="$HOME/Library/Application Support/MobileSync/Backup"
     get_directory_size "$backup_dir"
 }
@@ -21,12 +20,12 @@ clean_backups() {
         return
     fi
     
-    echo -e "Estimated size: ${BOLD}$(format_bytes $size)${RESET}\n"
+    echo -e "Estimated size: ${BOLD}$(format_bytes "$size")${RESET}\n"
     
     echo "This operation removes:"
-    echo "  • All backups in $backup_dir"
+    echo "  • ALL backups in $backup_dir"
     echo ""
-    echo -e "${YELLOW}Warning: This deletes local iPhone/iPad backups.${RESET}"
+    echo -e "${YELLOW}Warning: This deletes every local iPhone/iPad backup, not only old ones.${RESET}"
     echo ""
     
     if confirm "Continue?"; then

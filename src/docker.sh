@@ -3,21 +3,27 @@
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/scanner.sh"
 
+parse_docker_bytes() {
+    awk '{
+        gsub(/\(.*/, "")
+        gsub(/[[:space:]]/, "")
+        if ($0 ~ /GB/) { sum += $0 * 1073741824 }
+        else if ($0 ~ /MB/) { sum += $0 * 1048576 }
+        else if ($0 ~ /KB/) { sum += $0 * 1024 }
+        else if ($0 ~ /B/) { sum += $0 }
+    } END { printf "%.0f\n", sum }'
+}
+
 scan_docker() {
     if ! command -v docker &> /dev/null; then
         echo 0
         return
     fi
-    # Getting size of docker is complex without docker system df
-    # We can try to parse docker system df
+
+    # Reclaimable space only — matches what `docker system prune` can free
     local size_str
-    size_str=$(docker system df --format "{{.Size}}" 2>/dev/null | awk '{
-        if ($0 ~ /GB/) { sum += $1 * 1073741824 }
-        else if ($0 ~ /MB/) { sum += $1 * 1048576 }
-        else if ($0 ~ /KB/) { sum += $1 * 1024 }
-        else if ($0 ~ /B/) { sum += $1 }
-    } END { printf "%.0f\n", sum }')
-    
+    size_str=$(docker system df --format '{{.Reclaimable}}' 2>/dev/null | parse_docker_bytes)
+
     if [[ -z "$size_str" ]]; then
         echo 0
     else
@@ -39,10 +45,11 @@ clean_docker() {
     fi
     
     local size=$(scan_docker)
-    echo -e "Estimated total Docker size: ${BOLD}$(format_bytes $size)${RESET}\n"
+    echo -e "Estimated reclaimable size: ${BOLD}$(format_bytes "$size")${RESET}\n"
     
     echo "This operation runs 'docker system prune'."
-    echo "It removes all stopped containers, all networks not used by at least one container, all dangling images, and all dangling build cache."
+    echo "It removes stopped containers, unused networks, dangling images, and dangling build cache."
+    echo "It does not remove unused volumes or non-dangling images."
     echo ""
     
     if confirm "Continue?"; then

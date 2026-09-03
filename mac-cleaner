@@ -29,117 +29,142 @@ show_help() {
     echo "Commands:"
     echo "  (none)      Start interactive menu"
     echo "  scan        Scan storage and show potentially reclaimable space"
-    echo "  clean       Run a specific cleanup module (requires options)"
+    echo "  clean       Start interactive menu (same as no command)"
     echo "  snapshots   Manage Time Machine snapshots"
     echo ""
-    echo "Options for 'clean':"
+    echo "Options:"
     echo "  --dry-run   Do not delete anything, just show what would happen"
+    echo "  -h, --help  Show this help"
     echo ""
 }
 
+load_scan_stats() {
+    load_disk_info
+    MC_USER_CACHES=$(scan_user_caches)
+    MC_SYS_CACHES=$(scan_system_caches)
+    MC_SNAPS=$(scan_snapshots)
+    MC_XCODE=$(scan_xcode)
+    MC_BREW=$(scan_homebrew)
+    MC_NPM=$(scan_npm)
+    MC_BACKUPS=$(scan_backups)
+    MC_DOCKER=$(scan_docker)
+    MC_TOTAL=$((MC_USER_CACHES + MC_SYS_CACHES + MC_XCODE + MC_BREW + MC_NPM + MC_BACKUPS + MC_DOCKER))
+}
+
+print_scan_summary() {
+    echo -e "${BOLD}Disk${RESET}"
+    echo -e "${CYAN}────────────────────────────────────────────${RESET}"
+    printf "%-30s %s\n" "Used" "$(format_bytes "$MC_DISK_USED")"
+    printf "%-30s %s\n" "Free" "$(format_bytes "$MC_DISK_FREE")"
+    printf "%-30s %s\n" "Capacity" "$(format_bytes "$MC_DISK_TOTAL")"
+    echo ""
+
+    echo -e "${BOLD}Reclaimable${RESET}"
+    echo -e "${CYAN}────────────────────────────────────────────${RESET}"
+    printf "%-38s %s\n" "User caches" "$(format_bytes "$MC_USER_CACHES")"
+    printf "%-38s %s\n" "System caches" "$(format_bytes "$MC_SYS_CACHES")"
+    printf "%-38s %s\n" "Time Machine snapshots" "${MC_SNAPS} snapshots"
+    printf "%-38s %s\n" "Xcode DerivedData" "$(format_bytes "$MC_XCODE")"
+    printf "%-38s %s\n" "Homebrew cache" "$(format_bytes "$MC_BREW")"
+    printf "%-38s %s\n" "npm cache" "$(format_bytes "$MC_NPM")"
+    printf "%-38s %s\n" "iPhone/iPad backups" "$(format_bytes "$MC_BACKUPS")"
+    printf "%-38s %s\n" "Docker reclaimable" "$(format_bytes "$MC_DOCKER")"
+    echo ""
+    printf "%-38s %s\n" "Potential total" "$(format_bytes "$MC_TOTAL")"
+    echo ""
+}
+
+run_scan() {
+    print_header "MAC CLEANER"
+    print_dry_run_banner
+    echo -e "${YELLOW}Scanning storage, please wait...${RESET}"
+    load_scan_stats
+    echo ""
+    print_scan_summary
+}
+
 run_menu() {
+    local need_scan=1
+    local option
+
     while true; do
-        clear
-        print_header "MAC CLEANER"
-        
-        echo -e "${YELLOW}Scanning storage, please wait...${RESET}"
-        
-        # Disk Usage (using Swift to match macOS System Settings exactly)
-        local disk_info=$(swift -e 'import Foundation; let v = try! URL(fileURLWithPath: "/").resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey, .volumeTotalCapacityKey]); print("\(v.volumeTotalCapacity!) \(v.volumeAvailableCapacityForImportantUsage!)")' 2>/dev/null)
-        
-        local total_disk=0
-        local free_disk=0
-        local used_disk=0
-        
-        if [[ -n "$disk_info" ]]; then
-            total_disk=$(echo "$disk_info" | awk '{printf "%.0f\n", $1}')
-            free_disk=$(echo "$disk_info" | awk '{printf "%.0f\n", $2}')
-            used_disk=$((total_disk - free_disk))
-        else
-            # Fallback if swift fails
-            total_disk=$(df -k / | tail -1 | awk '{printf "%.0f\n", $2 * 1024}')
-            used_disk=$(df -k / | tail -1 | awk '{printf "%.0f\n", $3 * 1024}')
-            free_disk=$(df -k / | tail -1 | awk '{printf "%.0f\n", $4 * 1024}')
+        if [[ $need_scan -eq 1 ]]; then
+            clear
+            print_header "MAC CLEANER"
+            print_dry_run_banner
+            echo -e "${YELLOW}Scanning storage, please wait...${RESET}"
+            load_scan_stats
+            need_scan=0
         fi
-        
-        local user_caches=$(scan_user_caches)
-        local sys_caches=$(scan_system_caches)
-        local snaps=$(scan_snapshots)
-        local xcode=$(scan_xcode)
-        local brew=$(scan_homebrew)
-        local npm=$(scan_npm)
-        local backups=$(scan_backups)
-        local docker=$(scan_docker)
-        
-        local total=$((user_caches + sys_caches + xcode + brew + npm + backups + docker))
-        
+
         clear
         print_header "MAC CLEANER"
-        
+        print_dry_run_banner
+
         echo -e "${BOLD}Disk${RESET}"
         echo -e "${CYAN}────────────────────────────────────────────${RESET}"
-        printf "%-30s %s\n" "Used" "$(format_bytes $used_disk)"
-        printf "%-30s %s\n" "Free" "$(format_bytes $free_disk)"
-        printf "%-30s %s\n" "Capacity" "$(format_bytes $total_disk)"
+        printf "%-30s %s\n" "Used" "$(format_bytes "$MC_DISK_USED")"
+        printf "%-30s %s\n" "Free" "$(format_bytes "$MC_DISK_FREE")"
+        printf "%-30s %s\n" "Capacity" "$(format_bytes "$MC_DISK_TOTAL")"
         echo ""
-        
+
         echo -e "${BOLD}Cleanup options${RESET}"
         echo -e "${CYAN}────────────────────────────────────────────${RESET}"
         echo ""
-        printf "  1. %-35s %s\n" "Clean user caches" "$(format_bytes $user_caches)"
-        printf "  2. %-35s %s\n" "Clean system caches" "$(format_bytes $sys_caches)"
-        printf "  3. %-35s %s\n" "Manage Time Machine snapshots" "${snaps} snapshots"
-        printf "  4. %-35s %s\n" "Clean Xcode DerivedData" "$(format_bytes $xcode)"
-        printf "  5. %-35s %s\n" "Clean Homebrew cache" "$(format_bytes $brew)"
-        printf "  6. %-35s %s\n" "Clean npm cache" "$(format_bytes $npm)"
-        printf "  7. %-35s %s\n" "Remove old iPhone/iPad backups" "$(format_bytes $backups)"
-        printf "  8. %-35s %s\n" "Clean Docker unused data" "$(format_bytes $docker)"
-        printf "  9. %-35s %s\n" "Clean all caches (1, 2, 4, 5, 6)" "$(format_bytes $((user_caches + sys_caches + xcode + brew + npm)))"
+        printf "  1. %-35s %s\n" "Clean user caches" "$(format_bytes "$MC_USER_CACHES")"
+        printf "  2. %-35s %s\n" "Clean system caches" "$(format_bytes "$MC_SYS_CACHES")"
+        printf "  3. %-35s %s\n" "Manage Time Machine snapshots" "${MC_SNAPS} snapshots"
+        printf "  4. %-35s %s\n" "Clean Xcode DerivedData" "$(format_bytes "$MC_XCODE")"
+        printf "  5. %-35s %s\n" "Run Homebrew cleanup" "$(format_bytes "$MC_BREW")"
+        printf "  6. %-35s %s\n" "Clean npm cache" "$(format_bytes "$MC_NPM")"
+        printf "  7. %-35s %s\n" "Remove iPhone/iPad backups" "$(format_bytes "$MC_BACKUPS")"
+        printf "  8. %-35s %s\n" "Prune unused Docker data" "$(format_bytes "$MC_DOCKER")"
+        printf "  9. %-35s %s\n" "Clean all caches (1, 2, 4, 5, 6)" "$(format_bytes $((MC_USER_CACHES + MC_SYS_CACHES + MC_XCODE + MC_BREW + MC_NPM)))"
         printf " 10. %-35s\n" "More options..."
         echo ""
         printf "  0. %-35s\n" "Exit"
         echo ""
         echo -e "${CYAN}────────────────────────────────────────────${RESET}"
-        printf "     %-35s %s\n" "Potential total" "$(format_bytes $total)"
+        printf "     %-35s %s\n" "Potential total" "$(format_bytes "$MC_TOTAL")"
         echo ""
-        
+
         echo -e -n "${CYAN}Select an option:${RESET} "
-        
-        read -r option
-        
+        read -r option || exit 0
+
         echo ""
         case "$option" in
-            1) clean_user_caches ;;
-            2) clean_system_caches ;;
-            3) manage_snapshots ;;
-            4) clean_xcode ;;
-            5) clean_homebrew ;;
-            6) clean_npm ;;
-            7) clean_backups ;;
-            8) clean_docker ;;
-            9) 
+            1) clean_user_caches; need_scan=1 ;;
+            2) clean_system_caches; need_scan=1 ;;
+            3) manage_snapshots; need_scan=1 ;;
+            4) clean_xcode; need_scan=1 ;;
+            5) clean_homebrew; need_scan=1 ;;
+            6) clean_npm; need_scan=1 ;;
+            7) clean_backups; need_scan=1 ;;
+            8) clean_docker; need_scan=1 ;;
+            9)
                 clean_user_caches
                 clean_system_caches
                 clean_xcode
                 clean_homebrew
                 clean_npm
+                need_scan=1
                 ;;
-           10) run_more_menu ;;
+           10) run_more_menu; need_scan=1; continue ;;
             0) echo "Goodbye!"; exit 0 ;;
-            *) echo "Invalid option." ;;
+            *) echo "Invalid option."; sleep 1; continue ;;
         esac
-        
-        echo ""
-        echo -e -n "${CYAN}Press Enter to continue...${RESET}"
-        read -r
+
+        pause
     done
 }
 
 # Main execution
-if [[ "$1" == "--help" || "$1" == "-h" ]]; then
-    show_help
-    exit 0
-fi
+for arg in "$@"; do
+    if [[ "$arg" == "--help" || "$arg" == "-h" ]]; then
+        show_help
+        exit 0
+    fi
+done
 
 # Check for dry run
 if [[ "$*" == *"--dry-run"* ]]; then
@@ -151,14 +176,22 @@ case "$1" in
         run_scan
         ;;
     clean)
-        # Needs to be implemented to support 'mac-cleaner clean all' etc.
-        # For MVP, route to menu or specific module
-        echo "Direct clean command not fully implemented. Please use the menu."
+        run_menu
         ;;
     snapshots)
         manage_snapshots
         ;;
+    --dry-run)
+        run_menu
+        ;;
+    "")
+        run_menu
+        ;;
     *)
+        if [[ "$1" == -* ]]; then
+            show_help
+            exit 1
+        fi
         run_menu
         ;;
 esac
