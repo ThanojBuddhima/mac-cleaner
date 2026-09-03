@@ -9,7 +9,7 @@ A safe, conservative macOS cleanup utility built entirely in Bash.
 
 ## Table of Contents
 - [Features](#features)
-- [Quick Install](#quick-install)
+- [Installation](#installation)
 - [Usage](#usage)
 - [Uninstall](#uninstall)
 - [Architecture](#architecture)
@@ -30,7 +30,9 @@ A safe, conservative macOS cleanup utility built entirely in Bash.
   - Old iOS Device Backups
   - Docker images/containers
 
-## Quick Install
+## Installation
+
+### Method 1: Quick Install (For everyday users)
 
 You can easily download and install (Or Update) the tool globally so that it can be run from anywhere in your terminal by running this single command:
 
@@ -39,6 +41,22 @@ curl -sL https://raw.githubusercontent.com/ThanojBuddhima/mac-cleaner/main/insta
 ```
 
 Once installed, simply type `mac-cleaner` in your terminal to start the app.
+
+### Method 2: Manual Setup (For developers)
+
+If you prefer not to run installation scripts or want to avoid using `sudo`, you can clone the repository and run the tool manually.
+
+```bash
+git clone https://github.com/ThanojBuddhima/mac-cleaner.git
+cd mac-cleaner
+
+# Run directly:
+./mac-cleaner
+
+# Or symlink manually to avoid sudo (assuming ~/.local/bin is in your PATH):
+mkdir -p ~/.local/bin
+ln -s $(pwd)/mac-cleaner ~/.local/bin/mac-cleaner
+```
 
 ## Usage
 
