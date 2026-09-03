@@ -12,10 +12,10 @@ scan_trash() {
 
 clean_trash() {
     echo -e "${YELLOW}Emptying Trash...${RESET}"
-    if [ "$DRY_RUN" = true ]; then
-        echo "[DRY RUN] Would delete contents of $HOME/.Trash"
+    if [[ $IS_DRY_RUN -eq 1 ]]; then
+        echo -e "${MAGENTA}[DRY RUN] Would delete contents of $HOME/.Trash${RESET}"
     else
-        rm -rf "$HOME/.Trash/"* 2>/dev/null
+        find "$HOME/.Trash" -mindepth 1 -delete 2>/dev/null
         echo -e "${GREEN}Trash emptied.${RESET}"
     fi
 }
@@ -39,15 +39,15 @@ scan_logs() {
 clean_logs() {
     echo -e "${YELLOW}Cleaning Application and System Logs...${RESET}"
     
-    if [ "$DRY_RUN" = true ]; then
-        echo "[DRY RUN] Would delete contents of $HOME/Library/Logs"
-        echo "[DRY RUN] Would delete contents of /Library/Logs (requires sudo)"
+    if [[ $IS_DRY_RUN -eq 1 ]]; then
+        echo -e "${MAGENTA}[DRY RUN] Would delete contents of $HOME/Library/Logs${RESET}"
+        echo -e "${MAGENTA}[DRY RUN] Would delete contents of /Library/Logs (requires sudo)${RESET}"
     else
         echo "Cleaning User Logs..."
-        rm -rf "$HOME/Library/Logs/"* 2>/dev/null
+        find "$HOME/Library/Logs" -mindepth 1 -delete 2>/dev/null
         
         echo "Cleaning System Logs (Requires administrator password)..."
-        sudo rm -rf "/Library/Logs/"* 2>/dev/null
+        sudo find "/Library/Logs" -mindepth 1 -delete 2>/dev/null
         
         echo -e "${GREEN}Logs cleaned.${RESET}"
     fi
@@ -93,27 +93,27 @@ run_developer_wizard() {
         for opt in $selected; do
             case "$opt" in
                 1)
-                    if [ "$DRY_RUN" = true ]; then
-                        echo "[DRY RUN] Would delete Xcode DerivedData"
+                    if [[ $IS_DRY_RUN -eq 1 ]]; then
+                        echo -e "${MAGENTA}[DRY RUN] Would delete Xcode DerivedData${RESET}"
                     else
                         echo "Deleting DerivedData..."
-                        rm -rf "$HOME/Library/Developer/Xcode/DerivedData/"* 2>/dev/null
+                        find "$HOME/Library/Developer/Xcode/DerivedData" -mindepth 1 -delete 2>/dev/null
                     fi
                     ;;
                 2)
-                    if [ "$DRY_RUN" = true ]; then
-                        echo "[DRY RUN] Would delete Xcode Archives"
+                    if [[ $IS_DRY_RUN -eq 1 ]]; then
+                        echo -e "${MAGENTA}[DRY RUN] Would delete Xcode Archives${RESET}"
                     else
                         echo "Deleting Archives..."
-                        rm -rf "$HOME/Library/Developer/Xcode/Archives/"* 2>/dev/null
+                        find "$HOME/Library/Developer/Xcode/Archives" -mindepth 1 -delete 2>/dev/null
                     fi
                     ;;
                 3)
-                    if [ "$DRY_RUN" = true ]; then
-                        echo "[DRY RUN] Would delete Xcode iOS DeviceSupport"
+                    if [[ $IS_DRY_RUN -eq 1 ]]; then
+                        echo -e "${MAGENTA}[DRY RUN] Would delete Xcode iOS DeviceSupport${RESET}"
                     else
                         echo "Deleting iOS DeviceSupport..."
-                        rm -rf "$HOME/Library/Developer/Xcode/iOS DeviceSupport/"* 2>/dev/null
+                        find "$HOME/Library/Developer/Xcode/iOS DeviceSupport" -mindepth 1 -delete 2>/dev/null
                     fi
                     ;;
             esac
